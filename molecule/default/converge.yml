@@ -1,0 +1,27 @@
+---
+- name: Converge
+  hosts: django
+  tasks:
+    - name: Install rsync
+      delegate_to: localhost
+      changed_when: false
+      shell: apt-get update && apt-get install rsync -y
+
+    - name: Copy example project
+      synchronize:
+        src: ../../django_example_project/
+        dest: /opt/django/
+
+    - name: Install Django
+      import_role:
+        name: ansible-role-django
+      vars:
+        django_docker_container:
+          command: >-
+            gunicorn
+            -b 0.0.0.0:8000
+            django_example_project.wsgi
+          env:
+            DJANGO_SECRET_KEY: very-secret
+          ports:
+            - '8000:8000'

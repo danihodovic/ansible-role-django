@@ -1,0 +1,20 @@
+---
+django_docker_container: {}
+django_docker_container_defaults:
+  comparisons:
+    '*': strict
+  name: django
+  image: django
+  restart_policy: unless-stopped
+  memory: '{{ ansible_memory_mb.real.total * 0.3 }}m'
+  cpu_shares: '{{ (1024 * 0.3) | int }}'
+  command:
+    gunicorn
+    -b 0.0.0.0:80
+    --workers={{ ansible_processor_vcpus * 2 + 1}}
+    config.wsgi
+  env:
+    DJANGO_LOG_LEVEL: INFO
+    DJANGO_STATIC_ROOT: '/opt/django/static'
+  volumes:
+    - '/opt/django/static:/opt/django/static/'
