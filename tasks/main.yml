@@ -12,17 +12,12 @@
 
 - include_tasks: ./install_dependencies.yml
 
-- name: Create dir
-  file:
-    state: directory
-    path: /opt/django
-
 - name: Build image
   docker_image:
     source: build
     force: true  # rebuild if Dockerfile changes
     build:
-      path: /opt/django
+      path: '{{ django_dir }}'
     name: '{{ django_docker_container.image }}'
     push: false
 
