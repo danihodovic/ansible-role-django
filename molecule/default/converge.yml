@@ -1,16 +1,18 @@
 ---
 - name: Converge
   hosts: django
+  vars:
+    django_dir: /opt/my_app/
   tasks:
     - name: Install rsync
       delegate_to: localhost
       changed_when: false
-      shell: apt-get update && apt-get install rsync -y
+      shell: rsync --version || (apt-get update && apt-get install rsync -y)
 
     - name: Copy example project
       synchronize:
         src: ../../django_example_project/
-        dest: /opt/django/
+        dest: '{{ django_dir }}'
 
     - name: Install Django
       import_role:
@@ -19,9 +21,10 @@
         django_docker_container:
           command: >-
             gunicorn
-            -b 0.0.0.0:8000
+            -b 0.0.0.0:80
             django_example_project.wsgi
           env:
             DJANGO_SECRET_KEY: very-secret
+            DJANGO_STATIC_ROOT: /app/staticfiles
           ports:
-            - '8000:8000'
+            - '80:80'

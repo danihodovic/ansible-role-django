@@ -1,5 +1,6 @@
 ---
 django_docker_container: {}
+django_dir: /opt/django
 django_docker_container_defaults:
   comparisons:
     '*': strict
@@ -15,6 +16,6 @@ django_docker_container_defaults:
     config.wsgi
   env:
     DJANGO_LOG_LEVEL: INFO
-    DJANGO_STATIC_ROOT: '/opt/django/static'
+    DJANGO_ADMIN_URL: admin
   volumes:
-    - '/opt/django/static:/opt/django/static/'
+    - '{{ django_dir }}/staticfiles:/app/staticfiles'
