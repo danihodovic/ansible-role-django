@@ -14,8 +14,6 @@ Example playbook
         dest: /opt/my_website
         depth: 1
 
-        version: fix-dockerfile
-
     - name: Deploy app
       import_role:
         name: ansible-role-django
