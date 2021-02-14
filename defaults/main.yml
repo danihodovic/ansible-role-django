@@ -1,6 +1,7 @@
 ---
 django_docker_container: {}
 django_dir: /opt/django
+django_bind: 0.0.0.0:80
 django_docker_container_defaults:
   comparisons:
     '*': strict
@@ -11,7 +12,7 @@ django_docker_container_defaults:
   cpu_shares: '{{ (1024 * 0.3) | int }}'
   command:
     gunicorn
-    -b 0.0.0.0:80
+    -b {{ django_bind }}
     --workers={{ ansible_processor_vcpus * 2 + 1}}
     config.wsgi
   env:
