@@ -1,12 +1,14 @@
 ---
-django_docker_container: {}
+# yamllint disable-line rule:line-length
 django_dir: /opt/django
 django_bind: 0.0.0.0:80
-django_docker_container_defaults:
+django_celery_app: "placeholder-set-this-to-the-name-of-your-celery-app"
+django_container: {}
+django_container_defaults:
   comparisons:
     '*': strict
-  name: django
-  image: django
+  name: ansible-role-django
+  image: "image"
   restart_policy: unless-stopped
   memory: '{{ ansible_memory_mb.real.total * 0.3 }}m'
   cpu_shares: '{{ (1024 * 0.3) | int }}'
@@ -20,3 +22,9 @@ django_docker_container_defaults:
     DJANGO_ADMIN_URL: admin
   volumes:
     - '{{ django_dir }}/staticfiles:/app/staticfiles'
+
+django_celery_worker_container: {}
+django_celery_worker_container_defaults: '{{ django_container_defaults | combine({
+    "name": "celery-worker",
+    "ports": [],
+  })}}'

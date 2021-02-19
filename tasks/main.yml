@@ -1,44 +1,33 @@
 ---
-- name: Set vars
-  set_fact:
-    django_docker_container: >-
-      {{ django_docker_container_defaults |
-         combine(django_docker_container, recursive=True)}}
+- set_fact:
+    # yamllint disable-line rule:line-length
+    docker_container: '{{ django_container_defaults | combine(django_container )}}'
 
-- name: Assert Django secret key is set
-  assert:
-    that:
-      - django_docker_container.env.DJANGO_SECRET_KEY is defined
+- include_tasks: ./common.yml
+  vars:
+    django_image: '{{ docker_container.image }}'
 
-- include_tasks: ./install_dependencies.yml
-
-- name: Build image
-  docker_image:
-    source: build
-    force: true  # rebuild if Dockerfile changes
-    build:
-      path: '{{ django_dir }}'
-    name: '{{ django_docker_container.image }}'
-    push: false
 
 - name: Run collectstatic
   docker_container: >-
-    {{ django_docker_container | combine({
+    {{ docker_container | combine({
       "name": "django-collectstatic",
       "command": "./manage.py collectstatic --no-input --clear",
       "detach": false,
       "restart_policy": "no",
+      "ports": []
     })}}
 
 - name: Run migrations
   run_once: true
   docker_container: >-
-    {{ django_docker_container | combine({
+    {{ docker_container | combine({
       "name": "django-migrate",
       "command": "./manage.py migrate",
       "detach": false,
       "restart_policy": "no",
+      "ports": []
     })}}
 
 - name: Run Django app
-  docker_container: '{{ django_docker_container }}'
+  docker_container: '{{ docker_container }}'

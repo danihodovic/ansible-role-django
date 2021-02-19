@@ -1,0 +1,19 @@
+---
+- set_fact:
+    # yamllint disable-line rule:line-length
+    docker_container: '{{ django_celery_worker_container_defaults | combine(django_celery_worker_container )}}'
+
+- name: Assert celery cmd
+  assert:
+    that:
+      - docker_container.command
+    fail_msg: >-
+      You must provide a cmd to the celery worker container
+      e.g `celery --app celery --config django_example_project.settings.celery worker`
+
+- include_tasks: ./common.yml
+  vars:
+    django_image: '{{ docker_container.image }}'
+
+- name: Start a celery worker
+  docker_container: '{{ docker_container }}'

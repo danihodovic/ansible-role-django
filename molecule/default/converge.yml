@@ -1,8 +1,44 @@
 ---
 - name: Converge
-  hosts: django
-  vars:
-    django_dir: /opt/my_app/
+  hosts: web
+  tasks:
+    - name: Start celery worker
+      become: true
+      import_role:
+        name: ansible-role-redis
+        tasks_from: redis.yml
+      vars:
+        redis_network_range: '172.31.0.0/20'
+      delegate_to: web
+
+    - name: Install rsync
+      delegate_to: localhost
+      changed_when: false
+      shell: rsync --version || (apt-get update && apt-get install rsync -y)
+
+    - name: Copy example project
+      become: true
+      synchronize:
+        src: ../../django_example_project/
+        dest: '{{ django_dir }}'
+
+    - name: Install Django
+      become: true
+      import_role:
+        name: ansible-role-django
+      vars:
+        django_container:
+          name: django
+          command: >-
+            gunicorn
+            -b 0.0.0.0:80
+            django_example_project.wsgi
+          env: '{{ django_env }}'
+          ports:
+            - '80:80'
+
+- name: Deploy worker
+  hosts: worker
   tasks:
     - name: Install rsync
       delegate_to: localhost
@@ -10,21 +46,17 @@
       shell: rsync --version || (apt-get update && apt-get install rsync -y)
 
     - name: Copy example project
+      become: true
       synchronize:
         src: ../../django_example_project/
         dest: '{{ django_dir }}'
 
-    - name: Install Django
+    - name: Deploy worker
+      become: true
       import_role:
         name: ansible-role-django
+        tasks_from: celery.yml
       vars:
-        django_docker_container:
-          command: >-
-            gunicorn
-            -b 0.0.0.0:80
-            django_example_project.wsgi
-          env:
-            DJANGO_SECRET_KEY: very-secret
-            DJANGO_STATIC_ROOT: /app/staticfiles
-          ports:
-            - '80:80'
+        django_celery_worker_container:
+          env: '{{ django_env }}'
+          command: celery --app celery --config django_example_project.celery worker -l DEBUG

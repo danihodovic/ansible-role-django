@@ -7,6 +7,8 @@ volumes:
   - name: cache
     host:
       path: /tmp/drone-cache
+  - name: molecule-config
+    temp: {}
 
 workspace:
   path: ${DRONE_REPO_NAME}
@@ -27,25 +29,66 @@ steps:
         path: /tmp/cache
 
   - name: install-dependencies
-    image: python:3.8
+    image: python:3.9.1
     commands:
       # If the virtualenv dir is not cached create it
       - '[ ! -d ".virtualenv" ] && python -m venv .virtualenv'
       - . .virtualenv/bin/activate
       - pip install -r requirements.txt
 
-  - name: test
-    image: python:3.8
+  - &common
+    name: molecule-create
+    image: python:3.9.1
+    volumes:
+      - name: molecule-config
+        path: /molecule
     environment:
-      DO_API_TOKEN:
-        from_secret: DO_API_TOKEN
+      MOLECULE_EPHEMERAL_DIRECTORY: /molecule
+      AWS_ACCESS_KEY_ID:
+        from_secret: AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: AWS_SECRET_ACCESS_KEY
+      AWS_REGION: eu-west-1
       USER: root
       ANSIBLE_FORCE_COLOR: '1'
     commands:
       - . .virtualenv/bin/activate
-      - molecule test
+      - ansible-galaxy install -r requirements.yml
+      - molecule syntax
+      - molecule destroy
+      - molecule create
+
+  - <<: *common
+    name: molecule-converge
+    commands:
+      - . .virtualenv/bin/activate
+      - ansible-galaxy install -r requirements.yml
+      - molecule converge
+
+  - <<: *common
+    name: molecule-verify
+    commands:
+      - . .virtualenv/bin/activate
+      - molecule verify
+
+  - <<: *common
+    name: molecule-destroy
+    commands:
+      - . .virtualenv/bin/activate
+      - molecule destroy
+    when:
+      # Run regardless of prior success or failure
+      status:
+      - success
+      - failure
+
+  - <<: *common
+    name: lint-py
+    commands:
+      - . .virtualenv/bin/activate
       - black --check .
       - isort --check-only .
+
 
   - name: rebuild-cache-with-filesystem
     image: meltwater/drone-cache:dev

@@ -12,6 +12,7 @@ RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
 WORKDIR /app/
 
 # hadolint ignore=DL3013
-RUN pip install django gunicorn
+COPY ./requirements.txt /app/
+RUN pip install -r requirements.txt
 COPY . /app/
 CMD ["gunicorn", "-b", "0.0.0.0:80", "config.wsgi", "--timeout", "90"]

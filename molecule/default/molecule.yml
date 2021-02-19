@@ -2,12 +2,15 @@
 dependency:
   name: galaxy
 driver:
-  name: digitalocean
+  name: ec2
 platforms:
-  - name: django
-    region: fra1
-    size: 2gb
-    image: docker-20-04
+  - &common
+    name: web
+    vpc_subnet_id: subnet-1efffb7b
+    image: ami-0c48db26521ca9f07
+    instance_type: m5.xlarge
+  - <<: *common
+    name: worker
 provisioner:
   name: ansible
   config_options:
@@ -15,6 +18,15 @@ provisioner:
       stdout_callback: yaml
       host_key_checking: false
       pipelining: true
+  inventory:
+    group_vars:
+      all:
+        django_dir: /opt/my_app/
+        django_celery_app: hello_app
+        django_env:
+          DJANGO_SECRET_KEY: very-secret
+          DJANGO_STATIC_ROOT: /app/staticfiles
+          CELERY_BROKER_URL: 'redis://{{ hostvars.web.ansible_default_ipv4.address }}:6379'
 verifier:
   name: testinfra
   directory: ../../tests
@@ -26,7 +38,6 @@ scenario:
     - destroy
     - syntax
     - create
-    - prepare
     - converge
     - side_effect
     - verify
