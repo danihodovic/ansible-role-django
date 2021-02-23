@@ -1,0 +1,11 @@
+---
+- include_tasks: ./install_dependencies.yml
+
+- name: Build image
+  docker_image:
+    source: build
+    build:
+      path: '{{ django_dir }}'
+    name: '{{ django_image }}'
+    push: false
+    force_source: true

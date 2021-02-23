@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "very-secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -77,7 +77,7 @@ WSGI_APPLICATION = "django_example_project.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.getenv("DJANGO_DATABASE_URL", BASE_DIR / "db.sqlite3"),
     }
 }
 
@@ -120,3 +120,7 @@ USE_TZ = True
 
 STATIC_ROOT = os.getenv("DJANGO_STATIC_ROOT")
 STATIC_URL = "/static/"
+
+CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
+CELERY_CACHE_BACKEND = CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
