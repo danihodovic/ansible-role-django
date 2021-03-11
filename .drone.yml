@@ -14,7 +14,7 @@ workspace:
   path: ${DRONE_REPO_NAME}
 
 steps:
-  - name: restore-cache-with-filesystem
+  - name: restore-cache
     image: meltwater/drone-cache:dev
     pull: true
     settings:
@@ -29,6 +29,7 @@ steps:
         path: /tmp/cache
 
   - name: install-dependencies
+    depends_on: [restore-cache]
     image: python:3.9.1
     commands:
       # If the virtualenv dir is not cached create it
@@ -38,6 +39,7 @@ steps:
 
   - &common
     name: molecule-create
+    depends_on: [install-dependencies]
     image: python:3.9.1
     volumes:
       - name: molecule-config
@@ -60,6 +62,7 @@ steps:
 
   - <<: *common
     name: molecule-converge
+    depends_on: [molecule-create]
     commands:
       - . .virtualenv/bin/activate
       - ansible-galaxy install -r requirements.yml
@@ -67,11 +70,13 @@ steps:
 
   - <<: *common
     name: molecule-verify
+    depends_on: [molecule-converge]
     commands:
       - . .virtualenv/bin/activate
       - molecule verify
 
   - <<: *common
+    depends_on: [molecule-verify]
     name: molecule-destroy
     commands:
       - . .virtualenv/bin/activate
@@ -79,8 +84,8 @@ steps:
     when:
       # Run regardless of prior success or failure
       status:
-      - success
-      - failure
+        - success
+        - failure
 
   - <<: *common
     name: lint-py
@@ -90,7 +95,8 @@ steps:
       - isort --check-only .
 
 
-  - name: rebuild-cache-with-filesystem
+  - name: rebuild-cache
+    depends_on: [install-dependencies]
     image: meltwater/drone-cache:dev
     pull: true
     settings:
