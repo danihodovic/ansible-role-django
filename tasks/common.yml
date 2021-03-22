@@ -6,6 +6,7 @@
     source: build
     build:
       path: '{{ django_dir }}'
+      network: host
     name: '{{ django_image }}'
     push: false
     force_source: true
