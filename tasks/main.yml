@@ -7,7 +7,6 @@
   vars:
     django_image: '{{ docker_container.image }}'
 
-
 - name: Run collectstatic
   docker_container: >-
     {{ docker_container | combine({

@@ -1,4 +1,9 @@
 ---
+- name: Install apt dependencies
+  apt:
+    name: git
+    update_cache: true
+
 - name: Install pip dependencies
   pip:
     name: [docker]
