@@ -19,7 +19,7 @@ Example playbook
         name: ansible-role-django
       vars:
         django_dir: /opt/my_website/
-        django_docker_container:
+        django_container:
           name: my_website
           env:
             DJANGO_SECRET_KEY: '{{ vault_my_website_django_secret_key }}'
