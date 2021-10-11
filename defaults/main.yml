@@ -1,8 +1,8 @@
 ---
 # yamllint disable-line rule:line-length
 django_dir: /opt/django
-django_bind: 0.0.0.0:80
-django_celery_app: "placeholder-set-this-to-the-name-of-your-celery-app"
+django_bind: 0.0.0.0:8000
+django_build_image: true
 django_container: {}
 django_container_defaults:
   comparisons:

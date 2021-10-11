@@ -2,6 +2,7 @@
 - include_tasks: ./install_dependencies.yml
 
 - name: Build image
+  when: django_build_image
   docker_image:
     source: build
     build:
