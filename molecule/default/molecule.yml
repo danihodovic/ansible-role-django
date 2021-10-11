@@ -22,7 +22,6 @@ provisioner:
     group_vars:
       all:
         django_dir: /opt/my_app/
-        django_celery_app: hello_app
         django_env:
           DJANGO_SECRET_KEY: very-secret
           DJANGO_STATIC_ROOT: /app/staticfiles

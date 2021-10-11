@@ -1,5 +1,6 @@
 ---
-- name: Install apt dependencies
+- name: Install git
+  when: django_build_image
   apt:
     name: git
     update_cache: true
